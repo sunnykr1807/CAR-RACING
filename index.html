@@ -1,1 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sunny Car Racing</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #333;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #111;
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
 
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let car = { x: 175, y: 500, width: 50, height: 100, speed: 5 };
+    let keys = {};
+    let obstacles = [];
+    let score = 0;
+
+    // Controls
+    document.addEventListener("keydown", e => keys[e.key] = true);
+    document.addEventListener("keyup", e => keys[e.key] = false);
+
+    function drawCar() {
+      ctx.fillStyle = "red";
+      ctx.fillRect(car.x, car.y, car.width, car.height);
+    }
+
+    function drawObstacles() {
+      ctx.fillStyle = "yellow";
+      obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.width, o.height);
+        o.y += 4; // obstacle speed
+      });
+      obstacles = obstacles.filter(o => o.y < canvas.height);
+    }
+
+    function detectCollision() {
+      for (let o of obstacles) {
+        if (
+          car.x < o.x + o.width &&
+          car.x + car.width > o.x &&
+          car.y < o.y + o.height &&
+          car.height + car.y > o.y
+        ) {
+          alert("💥 Game Over! Score: " + score);
+          document.location.reload();
+        }
+      }
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 10, 25);
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Move car
+      if (keys["ArrowLeft"] && car.x > 0) car.x -= car.speed;
+      if (keys["ArrowRight"] && car.x < canvas.width - car.width) car.x += car.speed;
+
+      drawCar();
+      drawObstacles();
+      detectCollision();
+      drawScore();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Spawn obstacles
+    setInterval(() => {
+      let x = Math.random() * (canvas.width - 50);
+      obstacles.push({ x: x, y: -100, width: 50, height: 100 });
+      score++;
+    }, 1500);
+
+    gameLoop();
+  </script>
+</body>
+</html>
