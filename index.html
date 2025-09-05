@@ -1,95 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Sunny Car Racing</title>
+  <title>Car Racing Game</title>
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #333;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-      background: #111;
-      border: 2px solid white;
-    }
+    body { margin: 0; overflow: hidden; background: #333; }
+    canvas { display: block; margin: auto; background: #555; }
   </style>
 </head>
 <body>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
-
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
     let car = { x: 175, y: 500, width: 50, height: 100, speed: 5 };
     let keys = {};
-    let obstacles = [];
-    let score = 0;
 
-    // Controls
-    document.addEventListener("keydown", e => keys[e.key] = true);
-    document.addEventListener("keyup", e => keys[e.key] = false);
+    // Road lines
+    let lines = [];
+    for (let i = 0; i < 10; i++) {
+      lines.push({ x: 195, y: i * 60, width: 10, height: 40 });
+    }
 
-    function drawCar() {
+    document.addEventListener("keydown", (e) => keys[e.key] = true);
+    document.addEventListener("keyup", (e) => keys[e.key] = false);
+
+    function update() {
+      // Car move
+      if (keys["ArrowLeft"] && car.x > 0) car.x -= car.speed;
+      if (keys["ArrowRight"] && car.x < canvas.width - car.width) car.x += car.speed;
+
+      // Road lines move
+      for (let line of lines) {
+        line.y += 5;
+        if (line.y > canvas.height) line.y = -40;
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = "#555";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw road lines
+      ctx.fillStyle = "white";
+      for (let line of lines) {
+        ctx.fillRect(line.x, line.y, line.width, line.height);
+      }
+
+      // Draw car
       ctx.fillStyle = "red";
       ctx.fillRect(car.x, car.y, car.width, car.height);
     }
 
-    function drawObstacles() {
-      ctx.fillStyle = "yellow";
-      obstacles.forEach(o => {
-        ctx.fillRect(o.x, o.y, o.width, o.height);
-        o.y += 4; // obstacle speed
-      });
-      obstacles = obstacles.filter(o => o.y < canvas.height);
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
     }
-
-    function detectCollision() {
-      for (let o of obstacles) {
-        if (
-          car.x < o.x + o.width &&
-          car.x + car.width > o.x &&
-          car.y < o.y + o.height &&
-          car.height + car.y > o.y
-        ) {
-          alert("💥 Game Over! Score: " + score);
-          document.location.reload();
-        }
-      }
-    }
-
-    function drawScore() {
-      ctx.fillStyle = "white";
-      ctx.font = "20px Arial";
-      ctx.fillText("Score: " + score, 10, 25);
-    }
-
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Move car
-      if (keys["ArrowLeft"] && car.x > 0) car.x -= car.speed;
-      if (keys["ArrowRight"] && car.x < canvas.width - car.width) car.x += car.speed;
-
-      drawCar();
-      drawObstacles();
-      detectCollision();
-      drawScore();
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    // Spawn obstacles
-    setInterval(() => {
-      let x = Math.random() * (canvas.width - 50);
-      obstacles.push({ x: x, y: -100, width: 50, height: 100 });
-      score++;
-    }, 1500);
-
-    gameLoop();
+    loop();
   </script>
 </body>
 </html>
