@@ -1,80 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>2D Car Racing Game</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
-    <style>
-        body { margin: 0; }
-        canvas { display: block; margin: 0 auto; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Car Racing Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #333; }
+    canvas { display: block; margin: auto; background: #555; }
+  </style>
 </head>
 <body>
-<script>
-const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    physics: {
-        default: 'arcade',
-        arcade: { debug: false }
-    },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let car = { x: 175, y: 500, width: 50, height: 100, speed: 5 };
+    let keys = {};
+
+    // Road lines
+    let lines = [];
+    for (let i = 0; i < 10; i++) {
+      lines.push({ x: 195, y: i * 60, width: 10, height: 40 });
     }
-};
 
-const game = new Phaser.Game(config);
+    document.addEventListener("keydown", (e) => keys[e.key] = true);
+    document.addEventListener("keyup", (e) => keys[e.key] = false);
 
-let player;
-let cursors;
-let speed = 0;
-let maxSpeed = 300;
-let acceleration = 10;
-let deceleration = 15;
-let road;
+    function update() {
+      // Car move
+      if (keys["ArrowLeft"] && car.x > 0) car.x -= car.speed;
+      if (keys["ArrowRight"] && car.x < canvas.width - car.width) car.x += car.speed;
 
-function preload() {
-    this.load.image('road', 'https://i.imgur.com/3iVYcGZ.png'); // simple road image
-    this.load.image('car', 'https://i.imgur.com/YOURCAR.png'); // replace with car sprite
-}
-
-function create() {
-    road = this.add.tileSprite(400, 300, 800, 600, 'road');
-    
-    player = this.physics.add.sprite(400, 500, 'car');
-    player.setCollideWorldBounds(true);
-
-    cursors = this.input.keyboard.createCursorKeys();
-}
-
-function update() {
-    // Road scrolling
-    road.tilePositionY -= speed * 0.02;
-
-    // Acceleration & Brake
-    if (cursors.up.isDown) {
-        speed += acceleration;
-    } else if (cursors.down.isDown) {
-        speed -= deceleration;
-    } else {
-        speed *= 0.98; // friction
-    }
-    if (speed > maxSpeed) speed = maxSpeed;
-    if (speed < 0) speed = 0;
-
-    // Left-Right Movement
-    if (cursors.left.isDown) {
-        player.x -= 5;
-    } else if (cursors.right.isDown) {
-        player.x += 5;
-    }
-}
-</script>
-</body>
-</html>        if (line.y > canvas.height) line.y = -40;
+      // Road lines move
+      for (let line of lines) {
+        line.y += 5;
+        if (line.y > canvas.height) line.y = -40;
       }
     }
 
