@@ -7,34 +7,149 @@
   <style>
     body {
       margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      overflow: hidden;
       background: black;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: url('road.png') repeat-y center;
+      background-size: cover;
+    }
+    #scoreBoard {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      color: white;
       font-family: Arial, sans-serif;
     }
-
-    #gameArea {
-      position: relative;
-      width: 300px;
-      height: 500px;
-      background: url('https://i.ibb.co/1LgZwZQ/road.png') repeat-y center;
-      background-size: cover;
-      overflow: hidden;
-      border: 3px solid white;
-      animation: roadMove 2s linear infinite;
-    }
-
-    @keyframes roadMove {
-      from { background-position-y: 0; }
-      to { background-position-y: 500px; }
-    }
-
-    #car {
+    #gameOver {
       position: absolute;
-      bottom: 20px;
-      left: 130px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      color: red;
+      display: none;
+      font-family: Arial, sans-serif;
+    }
+    #restartBtn {
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 10px 20px;
+      font-size: 20px;
+      background: orange;
+      color: black;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreBoard">Score: 0</div>
+  <div id="gameOver">GAME OVER</div>
+  <button id="restartBtn">Restart</button>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Images
+    const carImg = new Image();
+    carImg.src = "car.png"; // apni orange car ka naam "car.png" rakho
+    const enemyCarImg = new Image();
+    enemyCarImg.src = "https://i.ibb.co/YQvYy9C/enemy-car.png"; // sample enemy car
+    const roadImg = new Image();
+    roadImg.src = "road.png"; // apna road image "road.png" naam se save karo
+
+    let car = { x: 180, y: 500, width: 50, height: 100, speed: 5 };
+    let enemies = [];
+    let score = 0;
+    let gameOver = false;
+
+    function drawCar() {
+      ctx.drawImage(carImg, car.x, car.y, car.width, car.height);
+    }
+
+    function drawEnemies() {
+      enemies.forEach(e => {
+        ctx.drawImage(enemyCarImg, e.x, e.y, e.width, e.height);
+      });
+    }
+
+    function updateEnemies() {
+      enemies.forEach((e, index) => {
+        e.y += e.speed;
+        if (e.y > canvas.height) {
+          enemies.splice(index, 1);
+          score += 10;
+          document.getElementById("scoreBoard").innerText = "Score: " + score;
+        }
+        // Collision check
+        if (
+          car.x < e.x + e.width &&
+          car.x + car.width > e.x &&
+          car.y < e.y + e.height &&
+          car.y + car.height > e.y
+        ) {
+          endGame();
+        }
+      });
+    }
+
+    function spawnEnemy() {
+      let x = Math.floor(Math.random() * 3) * 120 + 60;
+      enemies.push({ x: x, y: -100, width: 50, height: 100, speed: 4 });
+    }
+
+    function drawRoad() {
+      ctx.drawImage(roadImg, 0, 0, canvas.width, canvas.height);
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawRoad();
+      drawCar();
+      drawEnemies();
+      updateEnemies();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function endGame() {
+      gameOver = true;
+      document.getElementById("gameOver").style.display = "block";
+      document.getElementById("restartBtn").style.display = "block";
+    }
+
+    // Controls
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft" && car.x > 0) car.x -= car.speed * 10;
+      if (e.key === "ArrowRight" && car.x < canvas.width - car.width) car.x += car.speed * 10;
+      if (e.key === "ArrowUp" && car.y > 0) car.y -= car.speed * 10;
+      if (e.key === "ArrowDown" && car.y < canvas.height - car.height) car.y += car.speed * 10;
+    });
+
+    // Mobile buttons (optional bana denge baad me)
+
+    // Restart
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      location.reload();
+    });
+
+    // Enemy spawn every 2 sec
+    setInterval(spawnEnemy, 2000);
+
+    gameLoop();
+  </script>
+</body>
+</html>      left: 130px;
       width: 40px;
       height: 70px;
       background: url('https://i.ibb.co/1Kr9Rcv/car.png') no-repeat center;
