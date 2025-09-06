@@ -1,64 +1,180 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Car Racing Game</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #333; }
-    canvas { display: block; margin: auto; background: #555; }
+    body {
+      margin: 0;
+      background: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #gameArea {
+      position: relative;
+      width: 300px;
+      height: 500px;
+      background: #555;
+      overflow: hidden;
+      border: 3px solid white;
+    }
+    #car {
+      position: absolute;
+      bottom: 20px;
+      left: 130px;
+      width: 40px;
+      height: 70px;
+      background: red;
+      border-radius: 5px;
+    }
+    .enemy {
+      position: absolute;
+      top: -100px;
+      width: 40px;
+      height: 70px;
+      background: blue;
+      border-radius: 5px;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+      font-family: Arial, sans-serif;
+    }
+    #gameOver {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: yellow;
+      font-size: 30px;
+      font-weight: bold;
+      display: none;
+    }
+    .controls {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn {
+      width: 80px;
+      height: 50px;
+      background: rgba(255,255,255,0.3);
+      border: 2px solid white;
+      color: white;
+      font-size: 18px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="gameArea">
+    <div id="score">Score: 0</div>
+    <div id="car"></div>
+    <div id="gameOver">GAME OVER</div>
+    <div class="controls">
+      <button class="btn" id="leftBtn">⏪ Left</button>
+      <button class="btn" id="rightBtn">Right ⏩</button>
+    </div>
+  </div>
+
   <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const gameArea = document.getElementById("gameArea");
+    const car = document.getElementById("car");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverText = document.getElementById("gameOver");
+    const leftBtn = document.getElementById("leftBtn");
+    const rightBtn = document.getElementById("rightBtn");
 
-    let car = { x: 175, y: 500, width: 50, height: 100, speed: 5 };
-    let keys = {};
+    let carX = 130;
+    let score = 0;
+    let gameRunning = true;
+    let moveLeft = false, moveRight = false;
 
-    // Road lines
-    let lines = [];
-    for (let i = 0; i < 10; i++) {
-      lines.push({ x: 195, y: i * 60, width: 10, height: 40 });
+    // continuous car movement
+    function updateCar() {
+      if (!gameRunning) return;
+      if (moveLeft && carX > 10) carX -= 4;
+      if (moveRight && carX < 250) carX += 4;
+      car.style.left = carX + "px";
+      requestAnimationFrame(updateCar);
     }
+    updateCar();
 
-    document.addEventListener("keydown", (e) => keys[e.key] = true);
-    document.addEventListener("keyup", (e) => keys[e.key] = false);
+    // keyboard
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") moveLeft = true;
+      if (e.key === "ArrowRight") moveRight = true;
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft") moveLeft = false;
+      if (e.key === "ArrowRight") moveRight = false;
+    });
 
-    function update() {
-      // Car move
-      if (keys["ArrowLeft"] && car.x > 0) car.x -= car.speed;
-      if (keys["ArrowRight"] && car.x < canvas.width - car.width) car.x += car.speed;
+    // mobile buttons (press & hold)
+    leftBtn.addEventListener("touchstart", () => moveLeft = true);
+    leftBtn.addEventListener("touchend", () => moveLeft = false);
+    rightBtn.addEventListener("touchstart", () => moveRight = true);
+    rightBtn.addEventListener("touchend", () => moveRight = false);
 
-      // Road lines move
-      for (let line of lines) {
-        line.y += 5;
-        if (line.y > canvas.height) line.y = -40;
+    // enemy cars
+    function createEnemy() {
+      if (!gameRunning) return;
+      const enemy = document.createElement("div");
+      enemy.classList.add("enemy");
+      enemy.style.left = Math.floor(Math.random() * 3) * 100 + 30 + "px";
+      gameArea.appendChild(enemy);
+
+      let enemyMove = setInterval(() => {
+        if (!gameRunning) clearInterval(enemyMove);
+        let top = parseInt(enemy.style.top || -100);
+        if (top > 500) {
+          enemy.remove();
+          clearInterval(enemyMove);
+        } else {
+          enemy.style.top = top + 5 + "px";
+          checkCollision(enemy);
+        }
+      }, 30);
+    }
+    setInterval(createEnemy, 1500);
+
+    // collision
+    function checkCollision(enemy) {
+      let carRect = car.getBoundingClientRect();
+      let enemyRect = enemy.getBoundingClientRect();
+      let gameRect = gameArea.getBoundingClientRect();
+
+      if (
+        carRect.left < enemyRect.right &&
+        carRect.right > enemyRect.left &&
+        carRect.top < enemyRect.bottom &&
+        carRect.bottom > enemyRect.top
+      ) {
+        gameOver();
       }
     }
 
-    function draw() {
-      ctx.fillStyle = "#555";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw road lines
-      ctx.fillStyle = "white";
-      for (let line of lines) {
-        ctx.fillRect(line.x, line.y, line.width, line.height);
+    // score system
+    setInterval(() => {
+      if (gameRunning) {
+        score++;
+        scoreDisplay.textContent = "Score: " + score;
       }
+    }, 500);
 
-      // Draw car
-      ctx.fillStyle = "red";
-      ctx.fillRect(car.x, car.y, car.width, car.height);
+    function gameOver() {
+      gameRunning = false;
+      gameOverText.style.display = "block";
     }
-
-    function loop() {
-      update();
-      draw();
-      requestAnimationFrame(loop);
-    }
-    loop();
   </script>
 </body>
 </html>
