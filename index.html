@@ -17,9 +17,8 @@
       position: relative;
       width: 300px;
       height: 500px;
-      background: url('https://i.ibb.co/7R9F4H1/road-bg.jpg');
+      background: url('https://i.ibb.co/0V0R0HZ/road.jpg') no-repeat center;
       background-size: cover;
-      background-position: center;
       overflow: hidden;
       border: 3px solid white;
     }
@@ -29,12 +28,138 @@
       left: 130px;
       width: 50px;
       height: 100px;
-      background-image: url('https://i.ibb.co/6RmpKXZ/red-car.png');
+      background: url('https://i.ibb.co/9gMZk7z/redcar.png') no-repeat center;
       background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
     }
     .enemy {
+      position: absolute;
+      top: -100px;
+      width: 50px;
+      height: 100px;
+      background: url('https://i.ibb.co/dGY6bL3/bluecar.png') no-repeat center;
+      background-size: contain;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #gameOverScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      display: none;
+    }
+    #restartBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: red;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+    <div id="score">Score: 0</div>
+    <div id="car"></div>
+    <div class="enemy" id="enemy1"></div>
+    <div class="enemy" id="enemy2"></div>
+
+    <div id="gameOverScreen">
+      <div id="finalScore">Game Over</div>
+      <button id="restartBtn">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const car = document.getElementById("car");
+    const enemies = [document.getElementById("enemy1"), document.getElementById("enemy2")];
+    const scoreDisplay = document.getElementById("score");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalScore = document.getElementById("finalScore");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let score = 0;
+    let gameRunning = true;
+
+    document.addEventListener("keydown", moveCar);
+
+    function moveCar(e) {
+      if (!gameRunning) return;
+      let left = parseInt(window.getComputedStyle(car).getPropertyValue("left"));
+      if (e.key === "ArrowLeft" && left > 0) {
+        car.style.left = left - 20 + "px";
+      }
+      if (e.key === "ArrowRight" && left < 250) {
+        car.style.left = left + 20 + "px";
+      }
+    }
+
+    function moveEnemy(enemy) {
+      if (!gameRunning) return;
+      let enemyTop = parseInt(window.getComputedStyle(enemy).getPropertyValue("top"));
+      if (enemyTop >= 500) {
+        enemy.style.top = "-100px";
+        enemy.style.left = Math.floor(Math.random() * 250) + "px";
+        score += 10;
+        scoreDisplay.innerText = "Score: " + score;
+      } else {
+        enemy.style.top = enemyTop + 5 + "px";
+      }
+
+      if (isCollide(car, enemy)) {
+        gameOver();
+      }
+    }
+
+    function isCollide(car, enemy) {
+      let carRect = car.getBoundingClientRect();
+      let enemyRect = enemy.getBoundingClientRect();
+      return !(
+        carRect.top > enemyRect.bottom ||
+        carRect.bottom < enemyRect.top ||
+        carRect.right < enemyRect.left ||
+        carRect.left > enemyRect.right
+      );
+    }
+
+    function gameOver() {
+      gameRunning = false;
+      finalScore.innerText = "Game Over! Score: " + score;
+      gameOverScreen.style.display = "flex";
+    }
+
+    restartBtn.addEventListener("click", () => {
+      window.location.reload();
+    });
+
+    function gameLoop() {
+      enemies.forEach(enemy => moveEnemy(enemy));
+      if (gameRunning) {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>    .enemy {
       position: absolute;
       top: -100px;
       width: 50px;
