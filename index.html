@@ -22,6 +22,15 @@
       overflow: hidden;
       border: 3px solid white;
     }
+    .roadLine {
+      position: absolute;
+      width: 10px;
+      height: 80px;
+      background: white;
+      left: 50%;
+      transform: translateX(-50%);
+      top: -100px;
+    }
     #car {
       position: absolute;
       bottom: 20px;
@@ -35,6 +44,158 @@
       position: absolute;
       top: -100px;
       width: 40px;
+      height: 70px;
+      background: blue;
+      border-radius: 5px;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+      font-family: Arial, sans-serif;
+    }
+    #gameOver {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: yellow;
+      font-size: 30px;
+      font-weight: bold;
+      display: none;
+    }
+    .controls {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn {
+      width: 80px;
+      height: 50px;
+      background: rgba(255,255,255,0.3);
+      border: 2px solid white;
+      color: white;
+      font-size: 18px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+    <div id="score">Score: 0</div>
+    <div id="car"></div>
+    <div id="gameOver">GAME OVER</div>
+    <div class="controls">
+      <button class="btn" id="leftBtn">⏪ Left</button>
+      <button class="btn" id="rightBtn">Right ⏩</button>
+    </div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const car = document.getElementById("car");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverText = document.getElementById("gameOver");
+    const leftBtn = document.getElementById("leftBtn");
+    const rightBtn = document.getElementById("rightBtn");
+
+    let carX = 130;
+    let score = 0;
+    let gameRunning = true;
+
+    // move car
+    function moveCar(dir) {
+      if (!gameRunning) return;
+      if (dir === "left" && carX > 10) carX -= 20;
+      if (dir === "right" && carX < 250) carX += 20;
+      car.style.left = carX + "px";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") moveCar("left");
+      if (e.key === "ArrowRight") moveCar("right");
+    });
+
+    leftBtn.addEventListener("click", () => moveCar("left"));
+    rightBtn.addEventListener("click", () => moveCar("right"));
+
+    // road lines
+    function createRoadLine() {
+      const line = document.createElement("div");
+      line.classList.add("roadLine");
+      line.style.top = "-100px";
+      gameArea.appendChild(line);
+
+      let move = setInterval(() => {
+        if (!gameRunning) clearInterval(move);
+        let top = parseInt(line.style.top);
+        if (top > 500) {
+          line.remove();
+          clearInterval(move);
+        } else {
+          line.style.top = top + 5 + "px";
+        }
+      }, 30);
+    }
+    setInterval(createRoadLine, 500);
+
+    // enemy cars
+    function createEnemy() {
+      if (!gameRunning) return;
+      const enemy = document.createElement("div");
+      enemy.classList.add("enemy");
+      enemy.style.left = Math.floor(Math.random() * 3) * 100 + 30 + "px";
+      gameArea.appendChild(enemy);
+
+      let enemyMove = setInterval(() => {
+        if (!gameRunning) clearInterval(enemyMove);
+        let top = parseInt(enemy.style.top || -100);
+        if (top > 500) {
+          enemy.remove();
+          clearInterval(enemyMove);
+        } else {
+          enemy.style.top = top + 5 + "px";
+          checkCollision(enemy);
+        }
+      }, 30);
+    }
+    setInterval(createEnemy, 1500);
+
+    // collision
+    function checkCollision(enemy) {
+      let carRect = car.getBoundingClientRect();
+      let enemyRect = enemy.getBoundingClientRect();
+      let gameRect = gameArea.getBoundingClientRect();
+
+      if (
+        carRect.left < enemyRect.right &&
+        carRect.right > enemyRect.left &&
+        carRect.top < enemyRect.bottom &&
+        carRect.bottom > enemyRect.top
+      ) {
+        gameOver();
+      }
+    }
+
+    // score system
+    setInterval(() => {
+      if (gameRunning) {
+        score++;
+        scoreDisplay.textContent = "Score: " + score;
+      }
+    }, 500);
+
+    function gameOver() {
+      gameRunning = false;
+      gameOverText.style.display = "block";
+    }
+  </script>
+</body>
+</html>      width: 40px;
       height: 70px;
       background: blue;
       border-radius: 5px;
