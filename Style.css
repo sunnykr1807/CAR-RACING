@@ -1,0 +1,28 @@
+body {
+  margin: 0;
+  text-align: center;
+  background: black;
+  font-family: Arial, sans-serif;
+}
+
+#gameCanvas {
+  background: url("images/road.png") repeat-y;
+  background-size: cover;
+  display: block;
+  margin: auto;
+}
+
+#score {
+  color: white;
+}
+
+#restartBtn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: red;
+  color: white;
+  cursor: pointer;
+}
