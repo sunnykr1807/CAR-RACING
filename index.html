@@ -1,147 +1,44 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-// player car image (you already uploaded this)
-let car = new Image();
-car.src = "images/car.png";
-
-// enemy image paths (if uploaded, used; otherwise fallback colors)
-const enemyPaths = ["images/enemy1.png","images/enemy2.png","images/enemy3.png"];
-const enemyColors = ["#FFD700","#DC143C","#8A2BE2"]; // yellow, red, purple
-const enemyImgs = enemyPaths.map(p=>{
-  const im = new Image();
-  im.src = p;
-  return im;
-});
-
-let carX = canvas.width / 2 - 25;
-let carY = canvas.height - 120;
-let carWidth = 50;
-let carHeight = 100;
-
-let enemyCars = [];
-let score = 0;
-let gameOver = false;
-
-// helper to draw rounded rect (for fallback enemy)
-function roundRect(ctx, x, y, w, h, r) {
-  const rr = Math.min(r, w/2, h/2);
-  ctx.beginPath();
-  ctx.moveTo(x+rr, y);
-  ctx.arcTo(x+w, y, x+w, y+h, rr);
-  ctx.arcTo(x+w, y+h, x, y+h, rr);
-  ctx.arcTo(x, y+h, x, y, rr);
-  ctx.arcTo(x, y, x+w, y, rr);
-  ctx.closePath();
-  ctx.fill();
-}
-
-// spawn enemy: choose index (0..2)
-function spawnEnemy() {
-  if (gameOver) return;
-  const idx = Math.floor(Math.random() * 3);
-  const x = Math.random() * (canvas.width - carWidth);
-  const y = -120;
-  enemyCars.push({
-    x, y,
-    img: enemyImgs[idx],
-    color: enemyColors[idx],
-    width: carWidth,
-    height: carHeight,
-    passed: false,
-    speed: 3 + Math.random()*2
-  });
-}
-
-function drawCar() {
-  // draw player car if loaded else a fallback rectangle
-  if (car && car.complete && car.naturalWidth > 0) {
-    ctx.drawImage(car, carX, carY, carWidth, carHeight);
-  } else {
-    ctx.fillStyle = "#ff8c00";
-    roundRect(ctx, carX, carY, carWidth, carHeight, 8);
-  }
-}
-
-function drawEnemies() {
-  for (let e of enemyCars) {
-    if (e.img && e.img.complete && e.img.naturalWidth > 0) {
-      ctx.drawImage(e.img, e.x, e.y, e.width, e.height);
-    } else {
-      ctx.fillStyle = e.color;
-      roundRect(ctx, e.x, e.y, e.width, e.height, 8);
-      // wheels
-      ctx.fillStyle = "#222";
-      ctx.beginPath();
-      ctx.ellipse(e.x+12, e.y+e.height-10, 6, 6, 0, 0, Math.PI*2);
-      ctx.ellipse(e.x+e.width-12, e.y+e.height-10, 6, 6, 0, 0, Math.PI*2);
-      ctx.fill();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Car Racing Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      text-align: center;
     }
-  }
-}
-
-function updateEnemies() {
-  for (let i = enemyCars.length - 1; i >= 0; i--) {
-    const e = enemyCars[i];
-    e.y += e.speed;
-
-    // passed bottom -> +10
-    if (!e.passed && e.y > canvas.height) {
-      e.passed = true;
-      enemyCars.splice(i, 1);
-      score += 10;
-      document.getElementById("score").innerText = "Score: " + score;
-      continue;
+    #gameCanvas {
+      background: url("images/road.png") repeat-y;
+      background-size: cover;
+      display: block;
+      margin: auto;
     }
-
-    // collision check with player
-    if (
-      carX < e.x + e.width &&
-      carX + carWidth > e.x &&
-      carY < e.y + e.height &&
-      carY + carHeight > e.y
-    ) {
-      gameOver = true;
-      document.getElementById("restartBtn").style.display = "block";
+    #score {
+      color: white;
+      font-size: 24px;
+      margin-top: 10px;
     }
-  }
-}
+    #restartBtn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: red;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <button id="restartBtn">Restart</button>
 
-function gameLoop() {
-  if (gameOver) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawCar();
-  drawEnemies();
-  updateEnemies();
-  requestAnimationFrame(gameLoop);
-}
-
-// controls
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" && carX > 0) carX -= 20;
-  if (e.key === "ArrowRight" && carX < canvas.width - carWidth) carX += 20;
-});
-
-// start spawning & start the loop after player image is ready (or after short timeout)
-setInterval(spawnEnemy, 1600);
-
-// Start game when either car image loads OR after 300ms (in case car missing but fallback used)
-let started = false;
-function startIfReady() {
-  if (started) return;
-  // start once (we allow fallback even if images missing)
-  started = true;
-  requestAnimationFrame(gameLoop);
-}
-car.onload = startIfReady;
-// safety start if image doesn't load
-setTimeout(startIfReady, 300);
-
-document.getElementById("restartBtn").addEventListener("click", () => {
-  enemyCars = [];
-  score = 0;
-  gameOver = false;
-  document.getElementById("score").innerText = "Score: 0";
-  document.getElementById("restartBtn").style.display = "none";
-  gameLoop();
-});
+  <script src="script.js"></script>
+</body>
+</html>
