@@ -144,40 +144,4 @@ document.getElementById("restartBtn").addEventListener("click", () => {
   document.getElementById("score").innerText = "Score: 0";
   document.getElementById("restartBtn").style.display = "none";
   gameLoop();
-});        if (
-          player.x < enemy.x + enemy.width &&
-          player.x + player.width > enemy.x &&
-          player.y < enemy.y + enemy.height &&
-          player.y + player.height > enemy.y
-        ) {
-          gameOver = true;
-        }
-      }
-      enemies.filter(e => e.y < canvas.height);
-    }
-
-    function gameLoop() {
-      if (gameOver) {
-        document.getElementById("gameOver").style.display = "block";
-        document.getElementById("restartBtn").style.display = "block";
-        return;
-      }
-      draw();
-      update();
-      requestAnimationFrame(gameLoop);
-    }
-
-    document.addEventListener("keydown", e => {
-      if (e.key === "ArrowLeft" && player.x > 0) player.x -= player.speed;
-      if (e.key === "ArrowRight" && player.x < canvas.width - player.width)
-        player.x += player.speed;
-    });
-
-    setInterval(spawnEnemy, 1500);
-
-    document.getElementById("restartBtn").onclick = resetGame;
-
-    gameLoop();
-  </script>
-</body>
-</html>
+});
