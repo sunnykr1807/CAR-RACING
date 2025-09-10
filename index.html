@@ -32,6 +32,19 @@
       color: white;
       cursor: pointer;
     }
+    #controls {
+      margin-top: 20px;
+    }
+    .ctrlBtn {
+      padding: 15px 30px;
+      font-size: 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #00aaff;
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -39,6 +52,21 @@
   <canvas id="gameCanvas" width="400" height="600"></canvas>
   <button id="restartBtn">Restart</button>
 
+  <!-- Mobile controls -->
+  <div id="controls">
+    <button class="ctrlBtn" id="leftBtn">⬅ Left</button>
+    <button class="ctrlBtn" id="rightBtn">Right ➡</button>
+  </div>
+
   <script src="script.js"></script>
+  <script>
+    // Mobile controls for car
+    document.getElementById("leftBtn").addEventListener("click", () => {
+      if (carX > 0) carX -= 20;
+    });
+    document.getElementById("rightBtn").addEventListener("click", () => {
+      if (carX < canvas.width - carWidth) carX += 20;
+    });
+  </script>
 </body>
 </html>
