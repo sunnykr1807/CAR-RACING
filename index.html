@@ -182,6 +182,83 @@
     });
   </script>
 </body>
+</html>        if (e.y > canvas.height) {
+          enemyCars.splice(i, 1);
+          score += 10;
+          document.getElementById("score").innerText = "Score: " + score;
+        }
+
+        if (
+          carX < e.x + carWidth &&
+          carX + carWidth > e.x &&
+          carY < e.y + carHeight &&
+          carY + carHeight > e.y
+        ) {
+          gameOver = true;
+          showGameOver();
+        }
+      }
+    }
+
+    function showGameOver() {
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, canvas.height/3, canvas.width, 150);
+
+      ctx.fillStyle = "red";
+      ctx.font = "bold 40px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("GAME OVER", canvas.width/2, canvas.height/2);
+
+      document.getElementById("restartBtn").style.display = "block";
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+      drawCar();
+      drawEnemies();
+      updateEnemies();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // lane controls
+    function moveLeft() { if (currentLane > 0) currentLane--; }
+    function moveRight() { if (currentLane < lanes - 1) currentLane++; }
+
+    // Keyboard
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") moveLeft();
+      if (e.key === "ArrowRight") moveRight();
+      if (e.key === "ArrowUp") speed = 8;
+      if (e.key === "ArrowDown") speed = 3;
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") speed = 5;
+    });
+
+    // Mobile buttons
+    document.getElementById("leftBtn").addEventListener("click", moveLeft);
+    document.getElementById("rightBtn").addEventListener("click", moveRight);
+    document.getElementById("upBtn").addEventListener("mousedown", () => { speed = 8; });
+    document.getElementById("downBtn").addEventListener("mousedown", () => { speed = 3; });
+    document.addEventListener("mouseup", () => { speed = 5; });
+
+    setInterval(spawnEnemy, 2000);
+    gameLoop();
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      enemyCars = [];
+      score = 0;
+      speed = 5;
+      gameOver = false;
+      currentLane = 1;
+      document.getElementById("score").innerText = "Score: 0";
+      document.getElementById("restartBtn").style.display = "none";
+      gameLoop();
+    });
+  </script>
+</body>
 </html>        if (
           carX < e.x + carWidth &&
           carX + carWidth > e.x &&
