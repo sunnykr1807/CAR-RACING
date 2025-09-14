@@ -9,23 +9,61 @@
       background: #222;
       color: #fff;
       font-family: Arial, sans-serif;
+      overflow: hidden;
     }
     canvas {
       display: block;
       margin: auto;
       background: #000;
     }
-    #score { margin-top: 10px; font-size: 20px; }
+    #score { 
+      margin-top: 10px; 
+      font-size: 22px; 
+      font-weight: bold; 
+    }
     #restartBtn {
       display: none;
       font-size: 22px;
-      padding: 10px 20px;
+      padding: 12px 25px;
       margin-top: 20px;
-      border-radius: 10px;
-      background: red;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ff0000, #cc0000);
       color: white;
       border: none;
       cursor: pointer;
+      position: relative;
+    }
+    #restartBtn:hover {
+      background: linear-gradient(135deg, #ff4d4d, #cc0000);
+    }
+    #controls {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    #controls button {
+      width: 70px;
+      height: 70px;
+      font-size: 30px;
+      border-radius: 15px;
+      border: none;
+      background: #444;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #controls button:hover {
+      background: #666;
+    }
+    #upBtn {
+      background: url('images/accelerator.png') no-repeat center/50% #444;
+    }
+    #downBtn {
+      background: url('images/brake.png') no-repeat center/50% #444;
     }
   </style>
 </head>
@@ -36,8 +74,8 @@
 
   <div id="controls">
     <button id="leftBtn">⬅️</button>
-    <button id="upBtn">⬆️</button>
-    <button id="downBtn">⬇️</button>
+    <button id="upBtn"></button>
+    <button id="downBtn"></button>
     <button id="rightBtn">➡️</button>
   </div>
 
@@ -62,7 +100,7 @@
     const lanes = 3;
     const laneWidth = canvas.width / lanes;
 
-    let currentLane = 1; // 0-left,1-middle,2-right
+    let currentLane = 1; // middle lane
     let carX = currentLane * laneWidth + (laneWidth - carWidth) / 2;
     let carY = canvas.height - carHeight - 20;
 
@@ -106,6 +144,83 @@
         e.y += speed;
 
         if (e.y > canvas.height) {
+          enemyCars.splice(i, 1);
+          score += 10;
+          document.getElementById("score").innerText = "Score: " + score;
+        }
+
+        if (
+          carX < e.x + carWidth &&
+          carX + carWidth > e.x &&
+          carY < e.y + carHeight &&
+          carY + carHeight > e.y
+        ) {
+          gameOver = true;
+          showGameOver();
+        }
+      }
+    }
+
+    function showGameOver() {
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, canvas.height/3, canvas.width, 150);
+
+      ctx.fillStyle = "red";
+      ctx.font = "bold 40px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("GAME OVER", canvas.width/2, canvas.height/2);
+
+      document.getElementById("restartBtn").style.display = "inline-block";
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+      drawCar();
+      drawEnemies();
+      updateEnemies();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // lane controls
+    function moveLeft() { if (currentLane > 0) currentLane--; }
+    function moveRight() { if (currentLane < lanes - 1) currentLane++; }
+
+    // Keyboard
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") moveLeft();
+      if (e.key === "ArrowRight") moveRight();
+      if (e.key === "ArrowUp") speed = 8;
+      if (e.key === "ArrowDown") speed = 3;
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") speed = 5;
+    });
+
+    // Mobile buttons
+    document.getElementById("leftBtn").addEventListener("click", moveLeft);
+    document.getElementById("rightBtn").addEventListener("click", moveRight);
+    document.getElementById("upBtn").addEventListener("mousedown", () => { speed = 8; });
+    document.getElementById("downBtn").addEventListener("mousedown", () => { speed = 3; });
+    document.addEventListener("mouseup", () => { speed = 5; });
+
+    setInterval(spawnEnemy, 2000);
+    gameLoop();
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      enemyCars = [];
+      score = 0;
+      speed = 5;
+      gameOver = false;
+      currentLane = 1;
+      document.getElementById("score").innerText = "Score: 0";
+      document.getElementById("restartBtn").style.display = "none";
+      gameLoop();
+    });
+  </script>
+</body>
+</html>        if (e.y > canvas.height) {
           enemyCars.splice(i, 1);
           score += 10;
           document.getElementById("score").innerText = "Score: " + score;
