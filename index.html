@@ -1,71 +1,174 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Car Racing Game</title>
   <style>
     body {
       margin: 0;
-      background: black;
-      overflow: hidden;
       text-align: center;
+      background: #222;
+      color: #fff;
     }
-    #gameCanvas {
-      background: url("images/road.png") repeat-y;
-      background-size: cover;
+    canvas {
       display: block;
       margin: auto;
-    }
-    #score {
-      color: white;
-      font-size: 24px;
-      margin-top: 10px;
-    }
-    #restartBtn {
-      display: none;
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      background: red;
-      color: white;
-      cursor: pointer;
+      background: #000;
     }
     #controls {
-      margin-top: 20px;
+      margin-top: 10px;
     }
-    .ctrlBtn {
-      padding: 15px 30px;
+    button {
       font-size: 20px;
-      margin: 10px;
-      border: none;
+      padding: 10px 20px;
+      margin: 5px;
       border-radius: 8px;
-      background: #00aaff;
-      color: white;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="score">Score: 0</div>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <button id="restartBtn">Restart</button>
+  <p id="score">Score: 0</p>
+  <button id="restartBtn" style="display:none;">Restart</button>
 
   <!-- Mobile controls -->
   <div id="controls">
-    <button class="ctrlBtn" id="leftBtn">⬅ Left</button>
-    <button class="ctrlBtn" id="rightBtn">Right ➡</button>
+    <button id="leftBtn">⬅️</button>
+    <button id="upBtn">⬆️</button>
+    <button id="downBtn">⬇️</button>
+    <button id="rightBtn">➡️</button>
   </div>
 
-  <script src="script.js"></script>
   <script>
-    // Mobile controls for car
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // background road image
+    let road = new Image();
+    road.src = "images/road.png";
+
+    // player car
+    let car = new Image();
+    car.src = "images/car.png";
+
+    // enemies
+    let enemies = [new Image(), new Image(), new Image()];
+    enemies[0].src = "images/enemy1.png";
+    enemies[1].src = "images/enemy2.png";
+    enemies[2].src = "images/enemy3.png";
+
+    let carX = canvas.width / 2 - 25;
+    let carY = canvas.height - 120;
+    let carWidth = 50;
+    let carHeight = 100;
+
+    let speed = 5;
+    let enemyCars = [];
+    let score = 0;
+    let gameOver = false;
+
+    // road scroll
+    let roadY = 0;
+
+    function drawBackground() {
+      roadY += speed * 0.5;
+      if (roadY >= canvas.height) roadY = 0;
+
+      ctx.drawImage(road, 0, roadY, canvas.width, canvas.height);
+      ctx.drawImage(road, 0, roadY - canvas.height, canvas.width, canvas.height);
+    }
+
+    function spawnEnemy() {
+      let x = Math.random() * (canvas.width - carWidth);
+      let y = -100;
+      let img = enemies[Math.floor(Math.random() * enemies.length)];
+      enemyCars.push({ x, y, img });
+    }
+
+    function drawCar() {
+      ctx.drawImage(car, carX, carY, carWidth, carHeight);
+    }
+
+    function drawEnemies() {
+      for (let e of enemyCars) {
+        ctx.drawImage(e.img, e.x, e.y, carWidth, carHeight);
+      }
+    }
+
+    function updateEnemies() {
+      for (let i = enemyCars.length - 1; i >= 0; i--) {
+        let e = enemyCars[i];
+        e.y += speed;
+
+        if (e.y > canvas.height) {
+          enemyCars.splice(i, 1);
+          score += 10;
+          document.getElementById("score").innerText = "Score: " + score;
+        }
+
+        if (
+          carX < e.x + carWidth &&
+          carX + carWidth > e.x &&
+          carY < e.y + carHeight &&
+          carY + carHeight > e.y
+        ) {
+          gameOver = true;
+          document.getElementById("restartBtn").style.display = "block";
+        }
+      }
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawBackground();
+      drawCar();
+      drawEnemies();
+      updateEnemies();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Keyboard controls
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" && carX > 0) carX -= 20;
+      if (e.key === "ArrowRight" && carX < canvas.width - carWidth) carX += 20;
+      if (e.key === "ArrowUp") speed = 8;
+      if (e.key === "ArrowDown") speed = 3;
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") speed = 5;
+    });
+
+    // Mobile controls
     document.getElementById("leftBtn").addEventListener("click", () => {
       if (carX > 0) carX -= 20;
     });
     document.getElementById("rightBtn").addEventListener("click", () => {
       if (carX < canvas.width - carWidth) carX += 20;
+    });
+    document.getElementById("upBtn").addEventListener("mousedown", () => {
+      speed = 8;
+    });
+    document.getElementById("downBtn").addEventListener("mousedown", () => {
+      speed = 3;
+    });
+    document.addEventListener("mouseup", () => {
+      speed = 5;
+    });
+
+    setInterval(spawnEnemy, 2000);
+    gameLoop();
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      enemyCars = [];
+      score = 0;
+      speed = 5;
+      gameOver = false;
+      document.getElementById("score").innerText = "Score: 0";
+      document.getElementById("restartBtn").style.display = "none";
+      gameLoop();
     });
   </script>
 </body>
